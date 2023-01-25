@@ -232,4 +232,18 @@ Our query should reflect all of the following assumptions.
 - timestamp of each pageview will be greater than the previous pageview
 - referer URL of each pageview is the URL of a previous page
 */
+SELECT 
+  COUNT(DISTINCT(w.user_id)) AS welcome_users,
+  COUNT(DISTINCT(g.user_id)) AS choose_genres_users,
+  100.0 * (1 - COUNT(DISTINCT(g.user_id)) / COUNT(DISTINCT(w.user_id))::numeric) AS churn_rate
+FROM web_analytics.pageviews w
+LEFT JOIN web_analytics.pageviews g
+  ON w.visitor_id = g.visitor_id
+    AND g.url LIKE '%/select-genres%'
+    AND g.referer_url LIKE '%/welcome%'
+    AND g.created_at BETWEEN w.created_at AND w.created_at + '30 minutes'::interval
+WHERE
+  w.url LIKE '%/welcome%';
+  
+  
 
